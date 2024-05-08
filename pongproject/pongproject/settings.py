@@ -77,9 +77,20 @@ WSGI_APPLICATION = "pongproject.wsgi.application"
 ASGI_APPLICATION = "pongproject.asgi.application"
 
 # メモリベースのチャンネルレイヤーの設定
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer",
+#         'CONFIG': {
+#             'hosts': [('127.0.0.1', 6379)],  # Redisのホストとポート
+#         },
+#     },
+# }
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],  # DockerのRedisコンテナが動作しているホストとポート
+        },
     },
 }
 

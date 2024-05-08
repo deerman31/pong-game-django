@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pong Game</title>
+    <title>Pong Game - Multiplayer</title>
     <style>
         #game-board {
             width: 800px;
@@ -10,15 +10,22 @@
             background-color: black;
             position: relative;
             border: 2px solid white;
-            display: none; /* ゲーム開始時に表示されるように変更 */
+            display: none;  /* 最初は非表示 */
         }
 
         .paddle {
-            width: 20px;
+            width: 10px;
             height: 100px;
             background-color: white;
             position: absolute;
-            left: 1px;
+        }
+
+        #player1-paddle {
+            left: 0px;
+        }
+
+        #player2-paddle {
+            left: 790px;
         }
 
         #ball {
@@ -29,103 +36,140 @@
             border-radius: 50%;
         }
 
-        #debug-info, #score-info, #game-over-info {
+        #player1-score, #player2-score {
+            position: absolute;
+            top: 10px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #player1-score {
+            left: 10px;
+        }
+
+        #player2-score {
+            right: 10px;
+        }
+
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+        }
+
+        #start-button {
+            background-color: white;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #debug-info {
             color: white;
             background-color: gray;
             padding: 10px;
             margin-top: 20px;
-        }
-
-        #score-info {
-            margin-bottom: 20px;
-        }
-
-        #start-screen, #game-over-info {
-            text-align: center;
-            margin-top: 50px;
-        }
-
-        #start-button {
-            padding: 10px 20px;
-            margin-top: 20px;
-            background-color: white;
-            border: none;
-            cursor: pointer;
+            width: 800px;
+            height: 200px;
+            overflow-y: scroll;
         }
     </style>
     <script>
         const socket = new WebSocket('ws://localhost:8000/ws/pong/');
-        let playerPaddle = null;
+        let paddle1 = null;
+        let paddle2 = null;
         let ball = null;
+        let player1Score = null;
+        let player2Score = null;
 
         const debugInfo = document.createElement('div');
         debugInfo.id = "debug-info";
-        const scoreInfo = document.createElement('div');
-        scoreInfo.id = "score-info";
-        const gameOverInfo = document.createElement('div');
-        gameOverInfo.id = "game-over-info";
+
         const startScreen = document.createElement('div');
         startScreen.id = "start-screen";
         const startButton = document.createElement('button');
-
         startButton.id = "start-button";
         startButton.innerText = "Start Game";
 
         document.addEventListener('DOMContentLoaded', function() {
-            document.body.insertBefore(scoreInfo, document.body.firstChild);
-            document.body.appendChild(debugInfo);
-            document.body.appendChild(gameOverInfo);
+            // ゲームボードの要素
+            paddle1 = document.getElementById('player1-paddle');
+            paddle2 = document.getElementById('player2-paddle');
+            ball = document.getElementById('ball');
+            player1Score = document.getElementById('player1-score');
+            player2Score = document.getElementById('player2-score');
+
+            // スタート画面とボタンをセットアップ
             startScreen.appendChild(startButton);
             document.body.appendChild(startScreen);
+            document.body.appendChild(debugInfo);
 
-            playerPaddle = document.getElementById("player-paddle");
-            ball = document.getElementById("ball");
-
+            // スタートボタンをクリックしたときの処理
             startButton.addEventListener('click', function() {
-                startScreen.style.display = "none";
-                document.getElementById('game-board').style.display = "block";
                 socket.send(JSON.stringify({'action': 'start'}));
+                document.getElementById('game-board').style.display = "block";
+                startScreen.style.display = "none";
             });
         });
 
         function updateDebugInfo(message) {
-            debugInfo.innerText = message;
-        }
-
-        function updateScoreInfo(score, gameOver) {
-            scoreInfo.innerText = `Score: ${score}`;
-            if (gameOver) {
-                scoreInfo.innerText += " - Game Over!";
-                gameOverInfo.innerText = "Game Over! Click 'Start Game' to play again.";
-                gameOverInfo.style.display = "block";
-                startScreen.style.display = "block";
-                document.getElementById('game-board').style.display = "none";
-            }
+            const messageElement = document.createElement('p');
+            messageElement.textContent = message;
+            debugInfo.appendChild(messageElement);
+            debugInfo.scrollTop = debugInfo.scrollHeight;
         }
 
         socket.onopen = function(e) {
+            console.log("WebSocket connection opened.");
             updateDebugInfo("WebSocket connection opened.");
         };
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
+            let message = '';
 
-            if (data.player_y !== undefined) {
-                playerPaddle.style.top = `${data.player_y}px`;
+            // プレイヤー1のパドル位置とスコアを更新
+            if (data.player_1_y !== undefined) {
+                paddle1.style.top = `${data.player_1_y}px`;
+                message += `Player 1 paddle position: ${data.player_1_y}\n`;
+            }
+            if (data.score_1 !== undefined) {
+                player1Score.textContent = `Player 1: ${data.score_1}`;
+                message += `Player 1 score: ${data.score_1}\n`;
             }
 
+            // プレイヤー2のパドル位置とスコアを更新
+            if (data.player_2_y !== undefined) {
+                paddle2.style.top = `${data.player_2_y}px`;
+                message += `Player 2 paddle position: ${data.player_2_y}\n`;
+            }
+            if (data.score_2 !== undefined) {
+                player2Score.textContent = `Player 2: ${data.score_2}`;
+                message += `Player 2 score: ${data.score_2}\n`;
+            }
+
+            // ボールの位置を更新
             if (data.ball_x !== undefined && data.ball_y !== undefined) {
                 ball.style.left = `${data.ball_x}px`;
                 ball.style.top = `${data.ball_y}px`;
+                message += `Ball position: (${data.ball_x}, ${data.ball_y})\n`;
             }
 
-            if (data.score !== undefined && data.game_over !== undefined) {
-                updateScoreInfo(data.score, data.game_over);
-            }
-
-            updateDebugInfo(`Received ball position: (${data.ball_x}, ${data.ball_y})\nReceived paddle position: ${data.player_y}`);
+            updateDebugInfo(message);
         };
 
+        // キーボード入力に応じてアクションをサーバーに送信
         document.addEventListener('keydown', function(event) {
             let action = null;
             if (event.key === 'ArrowUp') {
@@ -141,10 +185,13 @@
     </script>
 </head>
 <body>
-    <h1>Pong Game</h1>
+    <h1>Pong Game - Multiplayer</h1>
     <div id="game-board">
-        <div id="player-paddle" class="paddle"></div>
+        <div id="player1-paddle" class="paddle"></div>
+        <div id="player2-paddle" class="paddle"></div>
         <div id="ball"></div>
+        <div id="player1-score">Player 1: 0</div>
+        <div id="player2-score">Player 2: 0</div>
     </div>
 </body>
 </html>
