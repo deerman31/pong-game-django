@@ -50,7 +50,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    #'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"  # 静的ファイルの配置先
 
 ROOT_URLCONF = "pongproject.urls"
 
@@ -61,6 +64,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [os.path.join(BASE_DIR, "templates")],
+        #"DIRS": [os.path.join(BASE_DIR, "pongapp", "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -76,15 +80,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "pongproject.wsgi.application"
 ASGI_APPLICATION = "pongproject.asgi.application"
 
-# メモリベースのチャンネルレイヤーの設定
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels.layers.InMemoryChannelLayer",
-#         'CONFIG': {
-#             'hosts': [('127.0.0.1', 6379)],  # Redisのホストとポート
-#         },
-#     },
-# }
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -102,7 +97,6 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        #"NAME": BASE_DIR / "db.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",  # 修正箇所
     }
 }
@@ -142,7 +136,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+# STATIC_URL = "/static/"
+# STATICFILES_DIRS = [
+#     BASE_DIR / "pongapp/static",  # Adjust the path according to your project structure
+# ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

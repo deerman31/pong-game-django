@@ -75,6 +75,35 @@
             font-size: 18px;
         }
 
+        #win-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: none;  /* 非表示にしておく */
+        }
+
+        #win-message {
+            font-size: 32px;
+        }
+
+        #restart-button {
+            background-color: white;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
         #debug-info {
             color: white;
             background-color: gray;
@@ -102,6 +131,17 @@
         startButton.id = "start-button";
         startButton.innerText = "Start Game";
 
+        const winScreen = document.createElement('div');
+        winScreen.id = "win-screen";
+        const winMessage = document.createElement('h2');
+        winMessage.id = "win-message";
+        const restartButton = document.createElement('button');
+        restartButton.id = "restart-button";
+        restartButton.innerText = "Restart Game";
+        restartButton.onclick = function() {
+            location.reload();  // ページを再読み込みしてゲームをリセット
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             // ゲームボードの要素
             paddle1 = document.getElementById('player1-paddle');
@@ -114,6 +154,11 @@
             startScreen.appendChild(startButton);
             document.body.appendChild(startScreen);
             document.body.appendChild(debugInfo);
+
+            // 勝敗画面とボタンをセットアップ
+            winScreen.appendChild(winMessage);
+            winScreen.appendChild(restartButton);
+            document.body.appendChild(winScreen);
 
             // スタートボタンをクリックしたときの処理
             startButton.addEventListener('click', function() {
@@ -164,6 +209,13 @@
                 ball.style.left = `${data.ball_x}px`;
                 ball.style.top = `${data.ball_y}px`;
                 message += `Ball position: (${data.ball_x}, ${data.ball_y})\n`;
+            }
+
+            // 勝敗が決定した場合
+            if (data.winner !== undefined) {
+                winMessage.textContent = `Player ${data.winner} wins!`;
+                document.getElementById('game-board').style.display = "none";
+                winScreen.style.display = "flex";
             }
 
             updateDebugInfo(message);

@@ -30,7 +30,13 @@ class PongConsumer(AsyncWebsocketConsumer):
             if not self.game.is_game_over():
                 self.game.move_ball()
             else:
+                winner = 1 if self.game.players[1].score >= self.game.max_score else 2
+                await self.send(text_data=json.dumps({
+                    'game_over': True,
+                    'winner': winner
+                }))
                 self.game.reset()
+
             # プレイヤー情報を含むデータを送信
             await self.send_game_state()
 

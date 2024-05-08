@@ -1,0 +1,24 @@
+<!-- pongapp/templates/pongapp/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Pong Game</title>
+    <link rel="stylesheet" href="{% static 'pongapp/style.css' %}">
+</head>
+<body>
+    <h1>Pong Game</h1>
+    <div id="game-board">
+        <div id="player-1" class="paddle"></div>
+        <div id="player-2" class="paddle"></div>
+        <div id="ball"></div>
+    </div>
+    <div id="scoreboard">
+        <span id="score-1">0</span> - <span id="score-2">0</span>
+    </div>
+    <button id="start-game">Start Game</button>
+
+    <script src="{% static 'pongapp/script.js' %}"></script>
+</body>
+</html>

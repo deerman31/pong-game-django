@@ -38,24 +38,31 @@ class Ball:
         self.dy = -self.dy
 
 class Player:
-    def __init__(self, name, x_position, y_position, height, speed):
+    def __init__(self, name, x_position, y_position=250, height=100, speed=20):
         self.name = name
         self.score = 0
-        self.paddle = Paddle(x_position, y_position, height, speed)
+        self.paddle = Paddle(x_position, y_position=250, height=100, speed=20)
 
     def add_score(self):
-        print("add_score")
+        print(self.name, ": add_score")
         self.score += 1
 
 class Game:
     def __init__(self):
         self.players = {
-            1: Player("ykusano", 10, 250, 100, 20),
-            2: Player("nop", 760, 250, 100, 20)
+            1: Player("ykusano", 10),
+            2: Player("nop", 760)
         }
         self.ball = Ball()
         self.max_score = 10
         self.started = False
+        self.winner = None
+    
+    def check_winner(self):
+        if self.players[1].score >= self.max_score:
+            self.winner = 1
+        elif self.players[2].score >= self.max_score:
+            self.winner = 2
     
     def start(self):
         print("Game start")
@@ -68,14 +75,15 @@ class Game:
             player.score = 0
         self.ball.reset()
         self.started = False
+        self.winner = None
 
     def move_ball(self):
         """ボールの動きと衝突判定"""
         if not self.started:
-            print("Game is not started")  # デバッグ用の出力
+            #print("Game is not started")  # デバッグ用の出力
             return
 
-        print("Moving the ball")  # デバッグ用の出力
+        #print("Moving the ball")  # デバッグ用の出力
         self.ball.move()
 
         # 上下の壁でボールが跳ね返る
