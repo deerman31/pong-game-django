@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pong Game</title>
+    <style>
+        #game-board {
+            width: 800px;
+            height: 600px;
+            background-color: black;
+            position: relative;
+            border: 2px solid white;
+            display: none; /* ゲーム開始時に表示されるように変更 */
+        }
+
+        .paddle {
+            width: 20px;
+            height: 100px;
+            background-color: white;
+            position: absolute;
+            left: 1px;
+        }
+
+        #ball {
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        #debug-info, #score-info, #game-over-info {
+            color: white;
+            background-color: gray;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        #score-info {
+            margin-bottom: 20px;
+        }
+
+        #start-screen, #game-over-info {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #start-button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        const socket = new WebSocket('ws://localhost:8000/ws/pong/');
+        let playerPaddle = null;
+        let ball = null;
+
+        const debugInfo = document.createElement('div');
+        debugInfo.id = "debug-info";
+        const scoreInfo = document.createElement('div');
+        scoreInfo.id = "score-info";
+        const gameOverInfo = document.createElement('div');
+        gameOverInfo.id = "game-over-info";
+        const startScreen = document.createElement('div');
+        startScreen.id = "start-screen";
+        const startButton = document.createElement('button');
+
+        startButton.id = "start-button";
+        startButton.innerText = "Start Game";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.insertBefore(scoreInfo, document.body.firstChild);
+            document.body.appendChild(debugInfo);
+            document.body.appendChild(gameOverInfo);
+            startScreen.appendChild(startButton);
+            document.body.appendChild(startScreen);
+
+            playerPaddle = document.getElementById("player-paddle");
+            ball = document.getElementById("ball");
+
+            startButton.addEventListener('click', function() {
+                startScreen.style.display = "none";
+                document.getElementById('game-board').style.display = "block";
+                socket.send(JSON.stringify({'action': 'start'}));
+            });
+        });
+
+        function updateDebugInfo(message) {
+            debugInfo.innerText = message;
+        }
+
+        function updateScoreInfo(score, gameOver) {
+            scoreInfo.innerText = `Score: ${score}`;
+            if (gameOver) {
+                scoreInfo.innerText += " - Game Over!";
+                gameOverInfo.innerText = "Game Over! Click 'Start Game' to play again.";
+                gameOverInfo.style.display = "block";
+                startScreen.style.display = "block";
+                document.getElementById('game-board').style.display = "none";
+            }
+        }
+
+        socket.onopen = function(e) {
+            updateDebugInfo("WebSocket connection opened.");
+        };
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.player_y !== undefined) {
+                playerPaddle.style.top = `${data.player_y}px`;
+            }
+
+            if (data.ball_x !== undefined && data.ball_y !== undefined) {
+                ball.style.left = `${data.ball_x}px`;
+                ball.style.top = `${data.ball_y}px`;
+            }
+
+            if (data.score !== undefined && data.game_over !== undefined) {
+                updateScoreInfo(data.score, data.game_over);
+            }
+
+            updateDebugInfo(`Received ball position: (${data.ball_x}, ${data.ball_y})\nReceived paddle position: ${data.player_y}`);
+        };
+
+        document.addEventListener('keydown', function(event) {
+            let action = null;
+            if (event.key === 'ArrowUp') {
+                action = 'up';
+            } else if (event.key === 'ArrowDown') {
+                action = 'down';
+            }
+
+            if (action) {
+                socket.send(JSON.stringify({'action': action}));
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Pong Game</h1>
+    <div id="game-board">
+        <div id="player-paddle" class="paddle"></div>
+        <div id="ball"></div>
+    </div>
+</body>
+</html>
