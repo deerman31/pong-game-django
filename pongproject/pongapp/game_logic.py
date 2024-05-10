@@ -6,10 +6,10 @@ class Paddle:
         self.speed = speed
     def move_up(self):
         self.y = max(self.y - self.speed, 0)
-        print("A: paddle up", self.y)
+        print("paddle up", self.y)
     def move_down(self, boundary):
         self.y = min(self.y + self.speed, boundary - self.height)
-        print("A: paddle down", self.y)
+        print("paddle down", self.y)
 
 class Ball:
     def __init__(self, x_position=400, y_position=300, radius=10, speed=10):

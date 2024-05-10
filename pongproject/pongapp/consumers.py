@@ -29,6 +29,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         while self.running:
             if not self.game.is_game_over():
                 self.game.move_ball()
+                self.auto_move_player2() #afdsafa
             else:
                 winner = 1 if self.game.players[1].score >= self.game.max_score else 2
                 await self.send(text_data=json.dumps({
@@ -56,11 +57,12 @@ class PongConsumer(AsyncWebsocketConsumer):
                 self.game.players[1].paddle.move_up()
             elif action == 'down':
                 self.game.players[1].paddle.move_down(600)
-        elif self.player_id == 2:
-            if action == 'up':
-                self.game.players[2].paddle.move_up()
-            elif action == 'down':
-                self.game.players[2].paddle.move_down(600)
+        # elif self.player_id == 2:
+        #     if action == 'up':
+        #         self.game.players[2].paddle.move_up()
+        #     elif action == 'down':
+        #         self.game.players[2].paddle.move_down(600)
+
 
         # クライアントに新しい位置を送信
         await self.send_game_state()
@@ -77,3 +79,11 @@ class PongConsumer(AsyncWebsocketConsumer):
             'score_2': self.game.players[2].score,
             'game_over': self.game.is_game_over()
         }))
+    
+    def auto_move_player2(self):
+        """プレイヤー2が自動でボールに追従するように動く"""
+        paddle_center = self.game.players[2].paddle.y + self.game.players[2].paddle.height / 2
+        if self.game.ball.y < paddle_center:
+            self.game.players[2].paddle.move_up()
+        elif self.game.ball.y > paddle_center:
+            self.game.players[2].paddle.move_down(600)
